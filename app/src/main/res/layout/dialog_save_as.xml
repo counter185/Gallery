@@ -54,4 +54,10 @@
             android:textSize="@dimen/bigger_text_size" />
 
     </org.fossify.commons.views.MyTextInputLayout>
+
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/overwrite_file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/overwrite"/>
 </LinearLayout>

@@ -20,23 +20,39 @@ class SaveAsDialog(
         }
 
         val binding = DialogSaveAsBinding.inflate(activity.layoutInflater).apply {
-            folderValue.setText("${activity.humanizePath(realPath).trimEnd('/')}/")
-
+            val folderPath = "${activity.humanizePath(realPath).trimEnd('/')}/"
             val fullName = path.getFilenameFromPath()
             val dotAt = fullName.lastIndexOf(".")
             var name = fullName
+            var extension = ""
 
             if (dotAt > 0) {
                 name = fullName.substring(0, dotAt)
-                val extension = fullName.substring(dotAt + 1)
+                extension = fullName.substring(dotAt + 1)
                 extensionValue.setText(extension)
             }
+
+            var preAppendName = name
 
             if (appendFilename) {
                 name += "_1"
             }
 
+            overwriteFile.setOnClickListener {
+                var shouldOverwrite = overwriteFile.isChecked
+                folderValue.isEnabled = !shouldOverwrite
+                filenameValue.isEnabled = !shouldOverwrite
+                extensionValue.isEnabled = !shouldOverwrite
+
+                if (shouldOverwrite) {
+                    filenameValue.setText(preAppendName)
+                    extensionValue.setText(extension)
+                    folderValue.setText(folderPath)
+                }
+            }
+
             filenameValue.setText(name)
+            folderValue.setText(folderPath)
             folderValue.setOnClickListener {
                 activity.hideKeyboard(folderValue)
                 FilePickerDialog(activity, realPath, false, false, true, true) {
@@ -53,6 +69,7 @@ class SaveAsDialog(
             .apply {
                 activity.setupDialogStuff(binding.root, this, org.fossify.commons.R.string.save_as) { alertDialog ->
                     alertDialog.showKeyboard(binding.filenameValue)
+
                     alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                         val filename = binding.filenameValue.value
                         val extension = binding.extensionValue.value
@@ -74,7 +91,7 @@ class SaveAsDialog(
                             return@setOnClickListener
                         }
 
-                        if (activity.getDoesFilePathExist(newPath)) {
+                        if (activity.getDoesFilePathExist(newPath) && !binding.overwriteFile.isChecked) {
                             val title = String.format(activity.getString(org.fossify.commons.R.string.file_already_exists_overwrite), newFilename)
                             ConfirmationDialog(activity, title) {
                                 if ((isRPlus() && !isExternalStorageManager())) {
